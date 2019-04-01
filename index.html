@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
     <head>
         <title>Traviso.js - Example 1 - Basic World</title>
         <style>
@@ -7,6 +7,7 @@
                 margin: 0;
                 padding: 0;
                 background-color: #000000;
+                text-align: center;
             }
         </style>
         
@@ -31,18 +32,16 @@
                 loader.add("map.json", "assets/mapdata/map.json",);
 
                 // 캐릭터 애니메이션
-                loader.add("assets/night/atk_left.json");
-                loader.add("assets/night/atk_up.json");
-                loader.add("assets/night/idle.json");
-                loader.add("assets/night/idle_up.json");
-                loader.add("assets/night/walk_down.json");
-                loader.add("assets/night/walk_up.json");
+                loader.add("assets/knight/atk_sw.json");
+                loader.add("assets/knight/atk_nw.json");
+                loader.add("assets/knight/idle_sw.json");
+                loader.add("assets/knight/idle_nw.json");
+                loader.add("assets/knight/walk_sw.json");
+                loader.add("assets/knight/walk_nw.json");
 
                 loader.add("shadow.png", "assets/shadow.png");
-
                 loader.add("windowlight.png", "assets/windowlight.png");
 
-                
                 loader.load(function (loader, resources) { 
                  
                     const map2 = new Engine.IsoMap(17, 17, 32, 16); // 일단 하드코딩
