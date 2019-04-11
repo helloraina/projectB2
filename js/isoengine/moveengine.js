@@ -55,15 +55,11 @@ class MoveEngine {
         this.tweenTargets = [];
 
         this.fps = 60;
-        this.processFunc = this.run.bind(this);
-        this.ticker = new PIXI.ticker.Ticker();
-        this.ticker.add(this.processFunc);
-        this.ticker.start();
     }
 
     setObject(o, x, y) {
         this.object = o;
-        this.speed = 3;
+        this.speed = 8;
 
         const px = this.engine.getTilePosXFor(x, y);
         const py = this.engine.getTilePosYFor(x, y);
@@ -211,7 +207,7 @@ class MoveEngine {
         return targetRemoved;
     }
 
-    run() {
+    update() {
         if (this.processFrame) {
             if (this.activeForMovables) {
                 let len = this.movables.length;

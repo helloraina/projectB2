@@ -46,23 +46,33 @@ function isInPolygon(gp, vertices) {
 	return c;
 };
 
+function mathMap(v, min1, max1, min2, max2, noOutliers) {
+    if (noOutliers) {
+        if (v < min1) { return min2; }
+        else if (v > max1) { return max2; }
+    }
+    return min2 + (max2 - min2) * (v - min1) / (max1 - min1);
+};
+
 Engine.DIRECTIONS = DIRECTIONS;
 
 const TILE_WIDTH  = 32;
 const TILE_HEIGHT = 16;
 
 class Tile extends PIXI.Container {
-    constructor(x, y) {
+    constructor(x, y, options) {
         super();
         this.gridX = x;
         this.gridY = y;
-    }
 
-    setTexture(texture) {
+        // 스프라이트 정보를 출력한다
+        const texture = PIXI.Texture.fromFrame(options.textureName);
         const sprite = new PIXI.Sprite(texture);
         sprite.position.y = -texture.height;
         this.addChild(sprite);
+        this.tileTexture = sprite;
 
+        // 타일 영역에 대한 버텍스를 만든다
         const vertices = [
             [0, -TILE_HEIGHT/2],
             [TILE_WIDTH/2, -TILE_HEIGHT],
@@ -71,6 +81,8 @@ class Tile extends PIXI.Container {
         ];
         this.vertices = vertices;
 
+        // 하이라이트를 만든다
+        // TODO : 모든 타일에 대해서 하이라이트를 만들 필요가 있을까? 바닥타일만 하이라이트를 만들고 싶다
         this.highlightedOverlay = new PIXI.Graphics();
         this.highlightedOverlay.clear();
         this.highlightedOverlay.lineStyle(2, 0xFFFFFF, 1);
@@ -86,6 +98,13 @@ class Tile extends PIXI.Container {
 
         this.highlightedOverlay.visible = false;
         this.isHighlighted = false;
+        
+        this.movable = options.movable || false;
+    }
+
+    setTexture(texture) {
+        this.tileTexture.texture = texture;
+        this.tileTexture.position.y = -texture.height;
     } 
 
     // 어떻게 해야하냐.. 고민고민
@@ -128,13 +147,12 @@ class IsoMap extends PIXI.Container {
 
         this.groundContainer = new PIXI.Container();
         this.objectContainer = new PIXI.Container()
+        this.overlayContainer = new PIXI.Container()
 
         this.mapContainer.addChild(this.groundContainer);
         this.mapContainer.addChild(this.objectContainer);
-
-        this.mousedown = this.touchstart = this.onMouseDown.bind(this);
-	    this.mousemove = this.touchmove = this.onMouseMove.bind(this);
-        this.mouseup = this.mouseupout = this.touchend = this.onMouseUp.bind(this);
+        this.mapContainer.addChild(this.overlayContainer);
+        
         this.interactive = true;
 
         this.pathFinder = new PathFinder(this.mapWidth, this.mapHeight);
@@ -143,14 +161,66 @@ class IsoMap extends PIXI.Container {
         this.currentScale = 1.0;
         this.currentZoom = 0;
     
-        this.posFrame = { x : 0, y : 0, w : 800, h : 600 };
+        this.posFrame = { x : 0, y : 0, w : 980, h : 500 };
         this.externalCenter = {
             x : this.posFrame.w >> 1,
             y : this.posFrame.h >> 1
         };
 
+        this.mapVisualWidthReal = this.getTilePosXFor(this.mapWidth - 1,this.mapHeight - 1) - this.getTilePosXFor(0,0);
+	    this.mapVisualHeightReal = this.getTilePosYFor(this.mapWidth - 1,0) - this.getTilePosYFor(0,this.mapHeight - 1);
+
         this.currentFocusLocation = { x: this.mapWidth >> 1, y: this.mapHeight >> 1 };
 		this.centralizeToPoint(this.externalCenter.x, this.externalCenter.y, true);
+    }
+
+    // Obj를 흔들어주는 function 이런건 유틸쪽으로 빼야할까..?..
+    // set Timeout 을 사용하는게 맞는가..? MovieClip Timeline이 있는데
+    vibrateObj(obj, strength, callback) {
+        var size = strength ? strength : 4;
+        var x = obj.position.x;
+        var y = obj.position.y;
+
+        var vibrate = () => {
+            setTimeout(() => {
+                obj.position.x = x;
+                obj.position.y = y;
+                if (size < -1 || size > 1) {
+                    obj.position.x += size;
+                    obj.position.y += size;
+                    size = size / -4 * 3;
+                    vibrate();
+                } else {
+                    callback ? callback() : null;
+                }
+            }, 30);
+        };
+
+        vibrate();
+    }
+
+    zoomTo(scale, instantZoom) {
+        
+        this.externalCenter = this.externalCenter ? this.externalCenter : { x: (this.mapVisualWidthScaled >> 1), y: 0 };
+        const diff = { x: this.mapContainer.position.x + (this.mapVisualWidthScaled >> 1) - this.externalCenter.x, y: this.mapContainer.position.y - this.externalCenter.y };
+        const oldScale = this.currentScale;
+        
+        this.setScale(scale, instantZoom);
+        
+        const ratio = this.currentScale / oldScale;
+        this.centralizeToPoint(this.externalCenter.x + diff.x * ratio, this.externalCenter.y + diff.y * ratio, instantZoom);
+    }
+
+    setScale(s, instantZoom) {
+        this.currentScale = s;
+        this.mapVisualWidthScaled = this.mapVisualWidthReal * this.currentScale;
+        this.mapVisualHeightScaled = this.mapVisualHeightReal * this.currentScale;
+        
+        if (instantZoom) {
+            this.mapContainer.scale.set(this.currentScale);
+        } else {
+            this.moveEngine.addTween(this.mapContainer.scale, 0.5, { x: this.currentScale, y: this.currentScale }, 0, "easeInOut", true );
+        }
     }
 
     centralizeToPoint(px, py, instantRelocate) {
@@ -163,28 +233,41 @@ class IsoMap extends PIXI.Container {
         }
     }
 
-    addTile(id, textureName) {
-        this.tiles[id] =  textureName;
+    addTile(id, textureName, options) {
+        options = options || {};
+        options.textureName = textureName;
+        this.tiles[id] = options;
+            
+    }
+
+    generateTile(x, y, tileId) {
+        const tileData = this.getTileData(tileId);
+        let tile;
+        if (tileData.objectType === "gate") {
+            tile = new Gate(x, y, tileData);
+        } else if (tileData.objectType === "chest") {
+            tile = new Chest(x, y, tileData);
+        }  else if (tileData.objectType === "anvil") {
+            tile = new Anvil(x, y, tileData);
+        }
+        else {
+            tile = new Tile(x, y, tileData);
+        }
+        tile.position.x = this.getTilePosXFor(x, y) - this.TILE_HALF_W;
+        tile.position.y = this.getTilePosYFor(x ,y) + this.TILE_HALF_H;
+        return tile;
     }
 
     setGroundTile(x, y, tileId) {
         if (tileId > 0) {
-            const gtile = new Tile(x, y);
-            gtile.position.x = this.getTilePosXFor(x, y) - this.TILE_HALF_W;
-            gtile.position.y = this.getTilePosYFor(x ,y) + this.TILE_HALF_H;
-            gtile.setTexture(this.getTileTexture(tileId));
-
-            this.groundMap[x + y * this.mapWidth] = gtile;
+            this.groundMap[x + y * this.mapWidth] = this.generateTile(x, y, tileId);
         }
     }
 
     setObjectTile(x, y, tileId) {
         if (tileId > 0) {
-            const otile = new Tile(x, y);
-            otile.position.x = this.getTilePosXFor(x, y) - this.TILE_HALF_W;
-            otile.position.y = this.getTilePosYFor(x ,y) + this.TILE_HALF_H;
-            otile.setTexture(this.getTileTexture(tileId));
-            this.objectMap[x + y * this.mapWidth] = otile;
+            this.objectMap[x + y * this.mapWidth] = this.generateTile(x, y, tileId);
+
         }
     }
 
@@ -200,13 +283,12 @@ class IsoMap extends PIXI.Container {
         return this.groundMap[x + y*this.mapWidth];
     }
 
-    getTileTexture(tileid) {
-        const src = this.tiles[tileid];
-        if (src) {
-            return PIXI.Texture.fromFrame(src);
-        } else {
-            return null;
-        }
+    getObjectAt(x, y) {
+        return this.objectMap[x + y*this.mapWidth];
+    }
+
+    getTileData(tileid) {
+        return this.tiles[tileid];
     }
 
     build() {
@@ -214,15 +296,18 @@ class IsoMap extends PIXI.Container {
             for (let x = this.mapWidth - 1; x >= 0; --x) {
                 const index = x + y * this.mapWidth;
                 const groundTile = this.groundMap[index];
+
                 if (groundTile) {
                     this.groundContainer.addChild(groundTile);
+                    this.pathFinder.setCell(x, y, groundTile.movable);
                 }
 
                 const objectTile = this.objectMap[index];
                 if (objectTile) {
                     this.objectContainer.addChild(objectTile);   
-                    this.pathFinder.setCell(x, y, 0);
+                    this.pathFinder.setDynamicCell(x, y, objectTile.movable);
                 }
+                
             }
         }
     }
@@ -291,20 +376,38 @@ class IsoMap extends PIXI.Container {
     }
 
     moveCharacter(character, x, y) {
-        // 길을 찾는다
-        if (character.isMoving) {
-            // 다음 위치에서부터 시작을 한다
-            const startX = character.currentTargetTile ? character.currentTargetTile.x : character.gridX;
-            const startY = character.currentTargetTile ? character.currentTargetTile.y : character.gridY;
 
-            const path  = this.pathFinder.solve(startX, startY, x, y);
-            character.newPath = path;
-        } else {
-            const path  = this.pathFinder.solve(character.gridX, character.gridY, x, y);
-            if (path) {
+        const target = this.getInteractiveTarget(x, y);
+        const ignoreTarget = target ? true : false;
+
+        // 다음 위치에서부터 시작을 한다
+        const startX = character.currentTargetTile ? character.currentTargetTile.x : character.gridX;
+        const startY = character.currentTargetTile ? character.currentTargetTile.y : character.gridY;
+        const path  = this.pathFinder.solve(startX, startY, x, y, ignoreTarget);
+
+        if (path) {
+            if (path[0].x === x && path[0].y === y) {
+                // 타겟을 설정한다
+                this.interactTarget = target;
+            } else {
+                this.interactTarget = null;
+            }
+            
+            // 길을 찾는다
+            if (character.isMoving) {
+                character.newPath = path;
+            } else {
                 this.moveObjThrough(character, path);
             }
         }
+    }
+
+    getInteractiveTarget(x, y) {
+        const target = this.getObjectAt(x, y);
+        if (target && target.isInteractive) {
+            return target;
+        }
+        return null;
     }
 
     moveObjThrough(obj, path) {
@@ -317,15 +420,20 @@ class IsoMap extends PIXI.Container {
             obj.newPath = undefined;
         }
 
+        if (path.length == 0) {
+            this.onObjMoveStepEnd(obj);
+            return;
+        }
+
         const isControlCharacter = true;
-        if (isControlCharacter) {
+        if (isControlCharacter & this.showPathHighlight) {
             this.highlightPath(obj.currentPath, path);
         }
 
         obj.currentPath = path;
         obj.currentPathStep = obj.currentPath.length - 1;
         obj.currentTargetTile = obj.currentPath[obj.currentPathStep];
-        obj.speedMagnitude = 1; // default speed
+        obj.speedMagnitude = 2;
 
         this.onObjMoveStepBegin(obj, obj.currentTargetTile.x, obj.currentTargetTile.y);
     }
@@ -355,20 +463,37 @@ class IsoMap extends PIXI.Container {
         obj.currentTargetTile = null;
         const pathEnded = (0 > obj.currentPathStep);
         this.moveEngine.removeMovable(obj);
+        let forceStop = false;
+
+        // 현재 지나고 있는 타일에 이벤트가 있는지 확인한다
+        // 하드코딩으로 이벤트를 지나게 한다
+        if (this.onTilePassing) {
+            forceStop = this.onTilePassing(obj);
+        }
+
+        // 만약에 인터랙티브 타겟이 있고, 길이가 하나 남았으면 정지시킨다.
+        if (this.interactTarget && obj.currentPathStep === 0) {
+            forceStop = true;
+        }
         
-        if (!pathEnded) {
-            //console.log(JSON.stringify(obj.currentPath))
-            //obj.currentPath.splice(obj.currentPath.length-1, 1);
-            //console.log(JSON.stringify(obj.currentPath))
+        if (!pathEnded && !forceStop) {
             this.moveObjThrough(obj, obj.currentPath.slice(0, obj.currentPath.length-1));
         }
         else {
             // reached to the end of the path
             obj.isMoving = false;
             obj.changeVisualToDirection(obj.currentDirection);
-        }
 
-        const isControlCharacter = true;
+            // 인터랙션 타겟이 있었나?
+            if (this.interactTarget) {
+                // 캐릭터가 해당 물체를 클릭하였다
+                const interactTarget = this.interactTarget;
+                this.interactTarget = null; // 먼저 null 로 만들어주어야 한다
+                if (this.onTouchObject) {
+                    this.onTouchObject(interactTarget);
+                }
+            }
+        }
     }
 
     highlightPath(currentPath, newPath) {
@@ -420,12 +545,37 @@ class IsoMap extends PIXI.Container {
         }	
     }
 
-    checkForFollowCharacter(obj) {
+    focusBattleCenter() {
+        if (true) {
+            const px = this.externalCenter.x - this.mapVisualWidthReal / 2 * this.currentScale;
+            const py = this.externalCenter.y - this.mapVisualHeightReal / 20 * this.currentScale;
+
+            this.moveEngine.addTween(this.mapContainer.position, 0.5, { x: px, y: py }, 0, "easeInOut", true);
+        }
+    }
+
+    focusBattleObject(obj) {
+        this.currentFocusLocation = { c: obj.gridX, r: obj.gridY };
+        const px = this.externalCenter.x - obj.position.x * this.currentScale;
+        const py = this.externalCenter.y - obj.position.y * this.currentScale + 20;
+
+        setTimeout(() => {
+            this.moveEngine.addTween(this.mapContainer.position, 0.5, { x: px, y: py }, 0, "easeInOut", true);
+        }, 500)
+    }
+
+    checkForFollowCharacter(obj, instantFollow) {
         if (true) {
             this.currentFocusLocation = { c: obj.gridX, r: obj.gridY };
             const px = this.externalCenter.x - obj.position.x * this.currentScale;
             const py = this.externalCenter.y - obj.position.y * this.currentScale;
-            this.moveEngine.addTween(this.mapContainer.position, 0.1, { x: px, y: py }, 0, "easeOut_ex", true );
+            
+            if (instantFollow) {
+                this.mapContainer.position.x = px;
+                this.mapContainer.position.y = py;
+            } else {
+                this.moveEngine.addTween(this.mapContainer.position, 0.1, { x: px, y: py }, 0, "easeOut_ex", true );
+            }
         }
     }
 
@@ -447,7 +597,7 @@ class IsoMap extends PIXI.Container {
                         // 충돌체크를 한다
                         const hit = hitTestRectangle(tile.getBounds(), obj.getBounds());
                         if (hit) {
-                            tile.alpha = 0.5;
+                            tile.alpha = 0.75;
                         }
                     }
                 }
@@ -469,7 +619,7 @@ class IsoMap extends PIXI.Container {
     
     arrangeDepthsFromLocation(gridX, gridY) {
         for (let y = gridY; y < this.mapHeight; y++) {
-            for (let x = 0; x < gridX; x++) {
+            for (let x = gridX - 1; x >= 0; x--) {
                 const a = this.objectMap[x + y * this.mapWidth];
                 if (a) {
                     this.objectContainer.addChild(a);
@@ -479,8 +629,8 @@ class IsoMap extends PIXI.Container {
     }
 
     removeObjRefFromLocation(obj) {
-        const index = obj.gridX + obj.gridY * this.mapWidth;
-        this.objectMap[index] = null;
+        //const index = obj.gridX + obj.gridY * this.mapWidth;
+        //this.objectMap[index] = null;
         this.objectContainer.removeChild(obj);
     }
     
@@ -490,9 +640,13 @@ class IsoMap extends PIXI.Container {
         obj.gridY = y;
       
 
-        const index = x + y * this.mapWidth;
-        this.objectMap[index] = obj;
+        //const index = x + y * this.mapWidth;
+        //this.objectMap[index] = obj;
         this.objectContainer.addChild(obj);
+    }
+
+    update() {
+        this.moveEngine.update();
     }
                 
 }
@@ -513,6 +667,8 @@ class Character extends PIXI.Container {
 
         this.gridX = 0;
         this.gridY = 0;
+
+        this.status = 'idle';
         this.container = new PIXI.Container();
 
 
@@ -530,6 +686,23 @@ class Character extends PIXI.Container {
         this.animations.walk_ne = { textures: this.animations.walk_nw.textures, flipX: true };
         this.animations.walk_se = { textures: this.animations.walk_sw.textures, flipX: true };
 
+        this.animations.attack_nw = { textures: loadAniTexture("atk_up", 10), flipX: false };
+        this.animations.attack_sw = { textures: loadAniTexture("atk_left", 10), flipX: false };
+        this.animations.attack_ne = { textures: this.animations.attack_nw.textures, flipX: true };
+        this.animations.attack_se = { textures: this.animations.attack_sw.textures, flipX: true };
+
+        // Stat Character 상속받는 Knight 클래스로 빼야할 것들..
+        // balance가 1에 가까울수록 좋은것. (확정적 데미지)
+        // (balance)% + Math.random() * (1 - balance)%
+        this.hp = 100;
+        this.maxHp = 100;
+        this.damage = 50;
+        this.balance = 0.8;
+        this.ciriticalRate = 0.4;
+        // critical로 인한 추가 데미지 계수.
+        this.ciriticalBalance = 1.5;
+        // 물리 방어계수 %
+        this.defense = 0.3;
 
         // 그림자를 추가한다
         const shadow = new PIXI.Sprite(PIXI.Texture.fromFrame("shadow.png"));
@@ -543,9 +716,87 @@ class Character extends PIXI.Container {
         this.anim = anim;
         this.container.addChild(anim);
 
+        const hpHolder = new PIXI.Sprite(PIXI.Texture.fromFrame("pbar.png"));
+        const hpBar = new PIXI.Sprite(PIXI.Texture.fromFrame("pbar_r.png"));
+
+        // 하드코딩
+        hpHolder.position.y = -this.anim.height - 8;
+        hpHolder.position.x = 16 - hpHolder.width / 2;
+
+        hpBar.position.y = -this.anim.height - 7;
+        hpBar.position.x = 16 - hpHolder.width / 2 + 1;
+        this.hpHolder = hpHolder;
+        this.hpBar = hpBar;
+        this.hpHolder.alpha = 0;
+        this.hpBar.alpha = 0;
+
+        this.container.addChild(hpHolder);
+        this.container.addChild(hpBar);
+
         this.currentDir = DIRECTIONS.SW;
 
         this.addChild(this.container);
+    }
+
+    setUiVisible(game, flag) {
+        const hpWidth = this.hp / this.maxHp * 34;
+        this.hpBar.width = hpWidth;
+
+        if (flag) {
+            game.tweens.addTween(this.hpHolder, 0.5, { alpha: 1 }, 0, "easeInOut", true);
+            game.tweens.addTween(this.hpBar, 0.5, { alpha: 1 }, 0, "easeInOut", true);
+        } else {
+            game.tweens.addTween(this.hpHolder, 0.5, { alpha: 0 }, 0, "linear", true);
+            game.tweens.addTween(this.hpBar, 0.5, { alpha: 0 }, 0, "linear", true);
+        }
+    }
+
+    onDamage(game, damage, options) {
+        this.hp -= damage;
+        let hpWidth = (this.hp < 0 ? 0 : this.hp) / this.maxHp * 34;
+        if (options.critical) {
+            game.whiteScreen.alpha = 0.2;
+            game.tweens.addTween(game.whiteScreen, 0.1, { alpha: 0 }, 0, "easeInOut", true);
+            game.stage.vibrateObj(game.stage.mapContainer, 6, null);
+        }
+        // Effect 작성해보자.
+        // 여기 메모리 낭비.. 계속 addChild로 animated sprite 박고 있어서 문제가 될 듯하다. 어떻게 해야할까..
+        // 심지어 이펙트 쪽으로 빼야할듯..
+        // 이것을 빼면서.. Character 내부에 뜨는 Damage 도 다른 Container에 생성해야할듯싶다..
+        const slash = { textures: loadAniTexture("slash_", 8), flipX: false };
+        const anim = new PIXI.extras.AnimatedSprite(slash.textures);
+        anim.animationSpeed = 0.5;
+        anim.loop = false;
+        anim.blendMode = PIXI.BLEND_MODES.ADD;
+        anim.play();
+        anim.position.y = -anim.height;
+        anim.position.x = -anim.width / 4;
+        this.container.addChild(anim);
+
+        // UI에서 데미지 받았을때 처리.
+        game.ui.battleUi.updateStatus(this);
+
+        game.tweens.addTween(this.hpBar, 0.5, { width: hpWidth }, 0, "easeInOut", true);
+        game.stage.vibrateObj(this.anim, 4, () => { this.checkDie(); });
+    }
+
+    checkDie() {
+        // tween으로 작성할것...
+        var func = () => {
+            setTimeout(() => {
+                if (this.container.alpha >= 0.1) {
+                    this.container.alpha -= 0.1;
+                    func();
+                } else {
+                    this.container.alpha = 0;
+                }
+            }, 20);
+        };
+
+        if (this.hp <= 0) {
+            this.status = 'die';
+            func();
+        }
     }
 
    
@@ -562,6 +813,7 @@ class Character extends PIXI.Container {
     }
 
     changeVisualToDirection(direction) {
+        this.currentDir = direction;
         if (this.isMoving) {
             // 이동 애니메이션
             this.setAnimation('walk_' + getDirectionName(direction));
@@ -570,6 +822,119 @@ class Character extends PIXI.Container {
         }
     }    
 }
+
+// 얘네 다른곳으로 빼야할 듯 하다..
+class Knight extends Character {
+    constructor() {
+        super();
+        // 스프라이트 로드같은것 캐릭터마다 다를테고.. 초상화 같은것도 있을테고.. 음 
+
+        this.name = "Hector";
+        this.portrait = new PIXI.Sprite(PIXI.Texture.fromFrame("player1_active.png"));
+        this.skillAIcon = new PIXI.Sprite(PIXI.Texture.fromFrame("ch03_skill01_on.png"));
+        this.skillBIcon = new PIXI.Sprite(PIXI.Texture.fromFrame("ch03_skill02.png"));
+
+        this.hp = 300;
+        this.maxHp = 300;
+        this.damage = 500;
+        this.balance = 0.85;
+        this.ciriticalRate = 0.3;
+        this.ciriticalBalance = 1.7;
+        this.defense = 0.5;
+    }
+}
+Engine.Knight = Knight;
+
+class Wizard extends Character {
+    constructor() {
+        super();
+
+        this.name = "Elid";
+        this.portrait = new PIXI.Sprite(PIXI.Texture.fromFrame("player2_active.png"));
+        this.skillAIcon = new PIXI.Sprite(PIXI.Texture.fromFrame("ch01_skill01_on.png"));
+        this.skillBIcon = new PIXI.Sprite(PIXI.Texture.fromFrame("ch01_skill02.png"));
+
+        this.hp = 150;
+        this.maxHp = 150;
+        this.damage = 500;
+        this.balance = 0.7;
+        this.ciriticalRate = 0.2;
+        this.ciriticalBalance = 1.5;
+        this.defense = 0.4;
+    }
+}
+Engine.Wizard = Wizard;
+
+class Archer extends Character {
+    constructor() {
+        super();
+
+        this.name = "Miluda";
+        this.portrait = new PIXI.Sprite(PIXI.Texture.fromFrame("player3_active.png"));
+        this.skillAIcon = new PIXI.Sprite(PIXI.Texture.fromFrame("ch02_skill01_on.png"));
+        this.skillBIcon = new PIXI.Sprite(PIXI.Texture.fromFrame("ch02_skill02.png"));
+
+        this.hp = 100;
+        this.maxHp = 100;
+        this.damage = 500;
+        this.balance = 0.8;
+        this.ciriticalRate = 0.5;
+        this.ciriticalBalance = 2;
+        this.defense = 0.3;
+    }
+}
+Engine.Archer = Archer;
+
+class Troll extends Character {
+    constructor() {
+        super();
+
+        this.portrait = new PIXI.Sprite(PIXI.Texture.fromFrame("monster01_active.png"));
+
+        this.hp = 300;
+        this.maxHp = 300;
+        this.damage = 30;
+        this.balance = 0.7;
+        this.ciriticalRate = 0.2;
+        this.ciriticalBalance = 1.2;
+        this.defense = 0.5;
+    }
+}
+Engine.Troll = Troll;
+
+class Medusa extends Character {
+    constructor() {
+        super();
+
+        this.portrait = new PIXI.Sprite(PIXI.Texture.fromFrame("monster02_active.png"));
+
+        this.hp = 150;
+        this.maxHp = 150;
+        this.damage = 50;
+        this.balance = 0.8;
+        this.ciriticalRate = 0.4;
+        this.ciriticalBalance = 1.5;
+        this.defense = 0.3;
+    }
+}
+Engine.Medusa = Medusa;
+
+class Wolf extends Character {
+    constructor() {
+        super();
+
+        this.portrait = new PIXI.Sprite(PIXI.Texture.fromFrame("monster03_active.png"));
+
+        this.hp = 150;
+        this.maxHp = 150;
+        this.damage = 50;
+        this.balance = 0.8;
+        this.ciriticalRate = 0.4;
+        this.ciriticalBalance = 1.5;
+        this.defense = 0.3;
+    }
+}
+Engine.Wolf = Wolf;
 
 //The `hitTestRectangle` function
 function hitTestRectangle(rect1, rect2) {
@@ -580,318 +945,187 @@ function hitTestRectangle(rect1, rect2) {
 };
 
 
-class GridNode {
-    constructor(x, y, weight) {
-        this.x = x;
-        this.y = y;
-        this.weight = weight;
-    }
-
-    getCost(fromNeighbor) {
-        // Take diagonal weight into consideration.
-        if (fromNeighbor && fromNeighbor.x !== this.x && fromNeighbor.y !== this.y)
-        {
-            return this.weight * 1.41421;
-        }
-        return this.weight;
-    }
-
-    isWall() {
-        return this.weight === 0;
-    }
-}
-
-class BinaryHeap{
-    constructor(scoreFunction) {
-        this.content = [];
-        this.scoreFunction = scoreFunction;
-    }
-
-    push(element) {
-        // Add the new element to the end of the array.
-        this.content.push(element);
-
-        // Allow it to sink down.
-        this.sinkDown(this.content.length - 1);
-    }
-
-    pop() {
-        // Store the first element so we can return it later.
-        const result = this.content[0];
-        // Get the element at the end of the array.
-        const end = this.content.pop();
-        // If there are any elements left, put the end element at the
-        // start, and let it bubble up.
-        if (this.content.length > 0) {
-            this.content[0] = end;
-            this.bubbleUp(0);
-        }
-        return result;
-    }
-
-    remove(node) {
-        const i = this.content.indexOf(node);
-
-        // When it is found, the process seen in 'pop' is repeated
-        // to fill up the hole.
-        const end = this.content.pop();
-
-        if (i !== this.content.length - 1) {
-            this.content[i] = end;
-
-            if (this.scoreFunction(end) < this.scoreFunction(node)) {
-                this.sinkDown(i);
-            }
-            else {
-                this.bubbleUp(i);
-            }
-        }
-    }
-
-    size() {
-        return this.content.length;
-    }
-
-    rescoreElement(node) {
-        this.sinkDown(this.content.indexOf(node));
-    }
-
-    sinkDown(n) {
-        // Fetch the element that has to be sunk.
-        const element = this.content[n];
-
-        // When at 0, an element can not sink any further.
-        while (n > 0) {
-
-            // Compute the parent element's index, and fetch it.
-            const parentN = ((n + 1) >> 1) - 1,
-                parent = this.content[parentN];
-            // Swap the elements if the parent is greater.
-            if (this.scoreFunction(element) < this.scoreFunction(parent)) {
-                this.content[parentN] = element;
-                this.content[n] = parent;
-                // Update 'n' to continue at the new position.
-                n = parentN;
-            }
-            // Found a parent that is less, no need to sink any further.
-            else {
-                break;
-            }
-        }
-    }
-
-    bubbleUp(n) {
-        // Look up the target element and its score.
-        const length = this.content.length,
-            element = this.content[n],
-            elemScore = this.scoreFunction(element);
-
-        while(true) {
-            // Compute the indices of the child elements.
-            const child2N = (n + 1) << 1,
-                child1N = child2N - 1;
-            // This is used to store the new position of the element, if any.
-            let swap = null,
-                child1Score;
-            // If the first child exists (is inside the array)...
-            if (child1N < length) {
-                // Look it up and compute its score.
-                const child1 = this.content[child1N];
-                child1Score = this.scoreFunction(child1);
-
-                // If the score is less than our element's, we need to swap.
-                if (child1Score < elemScore){
-                    swap = child1N;
-                }
-            }
-
-            // Do the same checks for the other child.
-            if (child2N < length) {
-                const child2 = this.content[child2N],
-                    child2Score = this.scoreFunction(child2);
-                if (child2Score < (swap === null ? elemScore : child1Score)) {
-                    swap = child2N;
-                }
-            }
-
-            // If the element needs to be moved, swap it, and continue.
-            if (swap !== null) {
-                this.content[n] = this.content[swap];
-                this.content[swap] = element;
-                n = swap;
-            }
-            // Otherwise, we are done.
-            else {
-                break;
-            }
-        }
-    }
-}
-
-class PathFinder {
-    constructor(width, height) {
-        
-        this.nodes = [];
-        this.grid = [];
-        for (let y = 0; y < height; y++)
-        {
-            this.grid.push([]);
-
-            for (let x = 0; x < width; x++)
-            {
-                const node = new GridNode(x, y, 1);
-                this.grid[y].push(node);
-                this.nodes.push(node);
-            }
-        }
-    }
-
-    init() {
-        this.dirtyNodes = [];
-        for (let i = 0; i < this.nodes.length; i++)
-        {
-            this.cleanNode(this.nodes[i]);
-        }
-    }
-
-    cleanNode(node) {
-        node.f = 0;
-        node.g = 0;
-        node.h = 0;
-        node.visited = false;
-        node.closed = false;
-        node.parent = null;
-    }
-
-    solve(originX, originY, destX, destY) {
-        const start = this.grid[originY][originX];
-        const end = this.grid[destY][destX];
-        const result = this.search(start, end, { heuristic: this.heuristic, closest: this.closest });
-        return result && result.length > 0 ? result : null;
-    }
-
-    search(start, end) {
-        this.init();
-        const heuristic = (pos0, pos1) => {
-            const d1 = Math.abs(pos1.x - pos0.x);
-            const d2 = Math.abs(pos1.y - pos0.y);
-            return d1 + d2;
-        };
-
-        const openHeap = new BinaryHeap((node) => node.f);
-
-        let closestNode = start; // set the start node to be the closest if required
-        start.h = heuristic(start, end);
-        openHeap.push(start);
-        
-        while(openHeap.size() > 0) {
-
-            // Grab the lowest f(x) to process next.  Heap keeps this sorted for us.
-            const currentNode = openHeap.pop();
-
-            // End case -- result has been found, return the traced path.
-            if(currentNode === end) {
-                return this.pathTo(currentNode);
-            }
-
-            // Normal case -- move currentNode from open to closed, process each of its neighbors.
-            currentNode.closed = true;
-
-            // Find all neighbors for the current node.
-            const neighbors = this.neighbors(currentNode);
-
-            for (let i = 0, il = neighbors.length; i < il; ++i) {
-                const neighbor = neighbors[i];
-
-                if (neighbor.closed || neighbor.isWall()) {
-                    // Not a valid node to process, skip to next neighbor.
-                    continue;
-                }
-
-                // The g score is the shortest distance from start to current node.
-                // We need to check if the path we have arrived at this neighbor is the shortest one we have seen yet.
-                const gScore = currentNode.g + neighbor.getCost(currentNode);
-                const beenVisited = neighbor.visited;
-
-                if (!beenVisited || gScore < neighbor.g) {
-
-                    // Found an optimal (so far) path to this node.  Take score for node to see how good it is.
-                    neighbor.visited = true;
-                    neighbor.parent = currentNode;
-                    neighbor.h = neighbor.h || heuristic(neighbor, end);
-                    neighbor.g = gScore;
-                    neighbor.f = neighbor.g + neighbor.h;
-                    this.markDirty(neighbor);
-                   
-                    // If the neighbour is closer than the current closestNode or if it's equally close but has
-                    // a cheaper path than the current closest node then it becomes the closest node
-                    if (neighbor.h < closestNode.h || (neighbor.h === closestNode.h && neighbor.g < closestNode.g)) {
-                        closestNode = neighbor;
-                    }
-
-                    if (!beenVisited) {
-                        // Pushing to heap will put it in proper place based on the 'f' value.
-                        openHeap.push(neighbor);
-                    }
-                    else {
-                        // Already seen the node, but since it has been rescored we need to reorder it in the heap
-                        openHeap.rescoreElement(neighbor);
-                    }
-                }
-            }
-        }
-
-        return this.pathTo(closestNode);
-    }
-
-    pathTo(node) {
-        let curr = node;
-        const path = [];
-        while(curr.parent) {
-            path.push(curr);
-            curr = curr.parent;
-        }
-        // return path.reverse();
-        return path;
-    }
-
-    neighbors(node) {
-        const ret = [],
-            y = node.x,
-            x = node.y,
-            grid = this.grid;
-
-        // West
-        if(grid[x-1] && grid[x-1][y]) {
-            ret.push(grid[x-1][y]);
-        }
-
-        // East
-        if(grid[x+1] && grid[x+1][y]) {
-            ret.push(grid[x+1][y]);
-        }
-
-        // South
-        if(grid[x] && grid[x][y-1]) {
-            ret.push(grid[x][y-1]);
-        }
-
-        // North
-        if(grid[x] && grid[x][y+1]) {
-            ret.push(grid[x][y+1]);
-        }
-
-
-        return ret;
-    }
-
-    markDirty(node) {
-        this.dirtyNodes.push(node);
-    }
-
-    setCell(x, y, movable) {
-	    this.grid[y][x].weight = movable;
-    }
-}
 
 Engine.Character = Character;
+
+
+// 
+class Gate extends Tile {
+    constructor(x, y, tileData) {
+        super(x, y, tileData);
+
+        // 철망을 붙인다
+        const base = (tileData.direction === DIRECTIONS.SW) ?
+                PIXI.Texture.fromFrame("stealBarL.png") : 
+                PIXI.Texture.fromFrame("stealBarR.png");
+
+        this.base = base;
+        this.bar1 = new PIXI.Sprite(new PIXI.Texture(base, new PIXI.Rectangle(0, 0, base.width, 50)));
+        this.bar2 = new PIXI.Sprite(new PIXI.Texture(base, new PIXI.Rectangle(0, 50, base.width, 40)));
+        this.bar3 = new PIXI.Sprite(new PIXI.Texture(base, new PIXI.Rectangle(0, 90, base.width, base.height - 90)));
+        this.addChild(this.bar1);
+        this.addChild(this.bar2);
+        this.addChild(this.bar3);
+
+        // 초기값을 설정할 수 있어야 한다
+        this.openRatio = 1; // 기본으로 닫아놓는다
+        
+        // 열쇠로 열수 있는지 확인한다
+        if (tileData.tags && tileData.tags.indexOf("key") >= 0) {
+            this.needsKey = true;
+        }
+    }
+
+    set openRatio(value) {
+        // 0이면 닫힌거고 1 이면 열린것
+        this.bar1.position.y = -this.base.height;
+        
+        this.bar2.position.y = this.bar1.position.y + this.bar1.height;
+        this.bar2.height = value * 40;
+        
+        this.bar3.position.y = this.bar1.position.y + 50 + this.bar2.height;
+
+        this._openRatio = value;
+        this.duration = 0.5;
+    }
+
+    open(tweens) {
+        if (tweens) {
+            // 열쇠가 돌아가는 시간을 조금 벌어야 한다. 바로 열리면 뭔가 이상하다
+            tweens.addTween(this, this.duration, { openRatio: 0 }, 0.5, "easeInOut", true);
+        } else {
+            this.openRatio = 0;
+        }
+    }
+
+    close(tweens) {
+        if (tweens) {
+            
+            tweens.addTween(this, this.duration, { openRatio: 1 }, 0, "easeInOut", true);
+        } else {
+            this.openRatio = 1;
+        }
+    }
+
+    get openRatio() {
+        return this._openRatio;
+    }
+
+    get isOpened() {
+        return this._openRatio <= 0;
+    }
+
+    get isInteractive() {
+        if (this.isOpened) {
+            // 열린문은 인터랙트 하지 않아도 된다
+            // 다시 닫을 일이 있을까?
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    touch(game) {
+        // 다이얼로그를 연다
+        if (!this.isOpened) {
+            if (this.needsKey) {
+                // 열쇠를 가지고 있는지 검사한다
+                const keyItem = game.player.inventory.getItemByType(3);
+                if (keyItem) {
+                    game.ui.showDialog("문을 열었다!");
+                    this.open(game.tweens);
+                    // 열쇠를 파괴한다
+                    game.player.inventory.deleteItem(keyItem.itemId);
+                } else {
+                    game.ui.showDialog("문을 열기 위해서 열쇠가 필요하다");
+                }
+                
+            } else {
+                game.ui.showDialog("이 문은 열리지 않을 것 같다\n\n다른 문을 찾아보자");
+            }
+        }
+    }
+    
+}   
+
+class Chest extends Tile {
+    constructor(x, y, tileData) {
+        super(x, y, tileData);
+
+        this.isInteractive = true;
+        this.isOpened = false;
+
+        // 자신의 타일 모양을 바꾸어야 한다
+        this.animations = tileData.animations;
+    }
+
+    open() {
+        // TODO : 애니메이션을 플레이 해야한다
+        // 텍스쳐 변경
+        this.setTexture(PIXI.Texture.fromFrame(this.animations[1].textureName));
+
+        this.isOpened = true;
+    }
+
+    touch(game) {
+        if (this.isOpened) {
+            game.ui.showDialog("상자는 비어있다.");
+        } else {
+            this.open();
+            // TODO : 아이템 아이디가 어딘가 있어야 하는데.. 일단 1,2번이 열쇠조각, 3번이 열쇠이다
+            let itemType;
+            if (!game.player.inventory.getItemByType(1))  {
+                game.player.inventory.addItem(1, 1);
+                itemType = 1;
+            } else if (!game.player.inventory.getItemByType(2))  {
+                game.player.inventory.addItem(2, 2);
+                itemType = 2;
+            }
+            
+            // 두번째상자에서 몬스터가 나오게 한다
+            if (itemType === 2) {
+                game.battleMode.callback = () => {
+                    this.onItemAdded(game, itemType);
+                };
+                game.enterStage('assets/mapdata/map2.json', "battle");
+            } else {
+                this.onItemAdded(game, itemType);
+            }
+        }
+    }
+
+    onItemAdded(game, itemType) {
+        game.ui.showItemAcquire(itemType, () => {
+            // TODO:  모달 클로즈 이벤트를 만들어야 한다
+            // 트리거를 만들어야 한다!!
+
+            if (game.player.inventory.getItemByType(1) && 
+                game.player.inventory.getItemByType(2)) {
+
+                game.ui.showChatBallon(game.player, "열쇠조각은 모두 모았어!!\n아까 모루를 본 것 같은데 \n그쪽으로 가보자", 4);
+            } else {
+                game.ui.showChatBallon(game.player, "열쇠조각이다! 나머지 조각도 어딘가 있을거야", 4);
+            }
+        });
+    }
+}
+
+class Anvil extends Tile {
+    constructor(x, y, tileData) {
+        super(x, y, tileData);
+
+        this.isInteractive = true;
+        this.firstTouch = true;
+    }
+
+    touch(game) {
+        if (this.firstTouch) {
+            this.firstTouch = false;
+            game.ui.showDialog("모루를 발견하였다\n\n새로운 아이템을 조합할 수 있게 되었다", () => {
+                game.ui.showCombine();
+            });
+        } else {
+            game.ui.showCombine();
+        }
+    }
+}
