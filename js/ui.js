@@ -397,7 +397,7 @@ class BattleUI extends PIXI.Container {
         this.battleUi = {
             playersPortraits: [],
             enemiesPortraits: []
-        };
+        };  
 
         this.removeChild(this.playerUi);
         this.removeChild(this.enemyUi);

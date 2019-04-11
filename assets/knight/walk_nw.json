@@ -139,6 +139,26 @@
         "w": 32,
         "h": 48
       }
+    },
+    "walk_nw7.png": {
+      "frame": {
+        "x": 224,
+        "y": 0,
+        "w": 32,
+        "h": 48
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 32,
+        "h": 48
+      }
     }
   },
   "meta": {
@@ -147,7 +167,7 @@
     "image": "walk_nw.png",
     "format": "RGBA8888",
     "size": {
-      "w": 224,
+      "w": 256,
       "h": 48
     }
   }

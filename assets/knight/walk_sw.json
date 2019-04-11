@@ -159,26 +159,6 @@
         "w": 32,
         "h": 48
       }
-    },
-    "walk_sw8.png": {
-      "frame": {
-        "x": 256,
-        "y": 0,
-        "w": 32,
-        "h": 48
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 32,
-        "h": 48
-      },
-      "sourceSize": {
-        "w": 32,
-        "h": 48
-      }
     }
   },
   "meta": {
@@ -187,7 +167,7 @@
     "image": "walk_sw.png",
     "format": "RGBA8888",
     "size": {
-      "w": 288,
+      "w": 256,
       "h": 48
     }
   }

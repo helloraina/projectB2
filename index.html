@@ -91,7 +91,7 @@
                     ["combine_listitem.png", "assets/combine_listitem.png"],
                     ["combine_button.png", "assets/combine_button.png"],
                     ["player1_active.png","assets/player1_active.png"],
-                    ["player2_active.png", "assets/player2_active.png"],
+                    ["player2_active.png", "assets/player2_actcive.png"],
                     ["player3_active.png", "assets/player3_active.png"],
                     ["ch01_skill01_on.png", "assets/ch01_skill01_on.png"],
                     ["ch01_skill02.png", "assets/ch01_skill02.png"],
@@ -138,7 +138,15 @@
                                 ui.hideCombine();
                             }
                             toggle = !toggle;
-                        } 
+                        } else if ( e.keyCode === 73 ) {
+                            // test raina0411
+                            toggle = !toggle;
+                            if(toggle) {
+                                ui.showInventory();
+                            } else {
+                                ui.hideInventory();
+                            }
+                        }
                     }, true);
                 });
             }
