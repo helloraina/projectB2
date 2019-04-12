@@ -1,0 +1,64 @@
+
+html {
+  height: 100%;
+  cursor: url(/assets/ui/cursor.png), auto;
+}
+
+body {
+  max-width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+
+  font-family: Helvetica, arial, sans-serif;
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  background-color: #000000;
+}
+
+canvas {
+  display: block;
+  margin: 0 auto;
+}
+t
+.project_header {
+  text-align: center;
+}
+
+.project_header h1 {
+  color: #ffffff;
+  font-size: 30px;
+  line-height: 1;
+  margin: 80px 0;
+}
+
+.modalContainer {
+  display: none;
+  
+  position: fixed;
+  z-index: 999;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.6);
+
+  text-align: center;
+}
+
+.modalContainer div[class*='modal'] {
+  display: none;
+
+  width: 490px;
+  height: 200px;
+
+  margin: 10% auto;
+  border: 1px solid red;
+}

@@ -2,16 +2,8 @@
 <html lang="ko">
     <head>
         <title>BEL H5 Game Demo</title>
-        <style>
-            body {
-                margin: 0;
-                padding: 0;
-                background-color: #000000;
+        <link rel="stylesheet" href="assets/css/game.css" type="text/css">
 
-                cursor: url(assets/ui/cursor.png), auto;
-            }
-        </style>
-        
         <script src="js/pixi/pixi.js"></script>
         <script src="js/isoengine/engine.js"></script>
         <script src="js/isoengine/moveengine.js"></script>
@@ -24,27 +16,17 @@
         <script src="js/game.js"></script>
         <script src="js/player.js"></script>
         <script src="js/ui.js"></script>
-        <style>
-            canvas {
-                display: block;
-                margin: 0 auto;
-            }
-            .project_header {
-                text-align: center;
-            }
-            .project_header h1 {
-                color: #ffffff;
-                font-size: 30px;
-                line-height: 1;
-                margin: 80px 0;
-            }
-        </style>
-      
     </head>
     <body>
         <div class="project_header">
             <h1>BEL - H5 게임 데모</h1>
         </div>
+
+        <div class="modalContainer">
+            <div class="modal-inventory">modal-inventory</div>
+            <div class="modal-compose">modal-compose</div>
+        </div>
+
         <script>
             const pixi = new PIXI.Application(980, 500  , { backgroundColor : 0x000000, forceCanvas: true });
             document.body.appendChild(pixi.view);
@@ -91,7 +73,7 @@
                     ["combine_listitem.png", "assets/combine_listitem.png"],
                     ["combine_button.png", "assets/combine_button.png"],
                     ["player1_active.png","assets/player1_active.png"],
-                    ["player2_active.png", "assets/player2_actcive.png"],
+                    ["player2_active.png", "assets/player2_active.png"],
                     ["player3_active.png", "assets/player3_active.png"],
                     ["ch01_skill01_on.png", "assets/ch01_skill01_on.png"],
                     ["ch01_skill02.png", "assets/ch01_skill02.png"],
