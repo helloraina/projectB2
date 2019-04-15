@@ -27,7 +27,13 @@ canvas {
   display: block;
   margin: 0 auto;
 }
-t
+
+#Game {
+  position: relative;
+  box-shadow: 5px 5px 15px 5px #333;
+  -webkit-box-shadow: 5px 5px 15px 5px #333; 
+}
+
 .project_header {
   text-align: center;
 }
@@ -42,23 +48,62 @@ t
 .modalContainer {
   display: none;
   
-  position: fixed;
-  z-index: 999;
-  top: 0;
+  position: absolute;
+  z-index: 9999;
+  
+  top: 190px;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.6);
+  
+  width: 980px;
+  height: 500px;
+  margin: 0 auto;
+  overflow: hidden;
 
-  text-align: center;
+  background-color: rgba(0,0,0, 1);
+  transition: background-color 0.3s;
 }
 
-.modalContainer div[class*='modal'] {
-  display: none;
+.modalContainer.show{
+  display: block;
+  background-color: rgba(0,0,0, .5);
+}
 
-  width: 490px;
-  height: 200px;
+.modalContainer .modal {
+  /* display: none; */
+  position: relative;
+  
+  width: 320px;
+  height: 450px;
+  margin: 0 auto;
 
-  margin: 10% auto;
-  border: 1px solid red;
+  color: #fff;
+  text-align: center;
+
+  background:url(../modal.png) no-repeat;
+}
+
+.modalContainer .modal .title {
+  padding: 8px 0;
+  font-size: 14px;
+}
+.modalContainer .modal .contents {
+  text-align: left;
+  padding: 20px 30px;
+}
+
+.modalContainer .modal button {
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: 15px;
+
+  margin: 0 auto;
+
+  width: 130px;
+  height: 33px;
+  padding: 10px 0;
+  background: url(../button1.png) no-repeat;
 }

@@ -2,6 +2,8 @@
 <html lang="ko">
     <head>
         <title>BEL H5 Game Demo</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
         <link rel="stylesheet" href="assets/css/game.css" type="text/css">
 
         <script src="js/pixi/pixi.js"></script>
@@ -16,20 +18,28 @@
         <script src="js/game.js"></script>
         <script src="js/player.js"></script>
         <script src="js/ui.js"></script>
+        <script src="js/domUI.js"></script>
     </head>
     <body>
         <div class="project_header">
             <h1>BEL - H5 게임 데모</h1>
         </div>
 
-        <div class="modalContainer">
-            <div class="modal-inventory">modal-inventory</div>
-            <div class="modal-compose">modal-compose</div>
+        <div class="modalContainer" id="modalContainer">
+            <div class="modal">
+                <h1 class="title">title</h1>
+                <div class="contents">contents</div>
+                <button class="submit">submit</button>
+            </div>
         </div>
 
         <script>
             const pixi = new PIXI.Application(980, 500  , { backgroundColor : 0x000000, forceCanvas: true });
             document.body.appendChild(pixi.view);
+            pixi.view.id = "Game";
+
+            const container = document.getElementById('modalContainer');
+
 
             // 오프닝을 준비한다
             const loader = new PIXI.loaders.Loader();
@@ -48,6 +58,17 @@
                 pixi.stage.addChild(new PIXI.Sprite(PIXI.Texture.fromFrame("border.png")));
             });
 
+            
+            function showModal(modalType){
+                container.classList.add('show');
+
+                // if(modalType === 'inventory') {
+
+                // }
+            }
+            function hideModal(){
+                container.classList.remove('show');
+            }
 
             function gameStart() {
                 // 나중에 스테이지 데이터와 캐릭터 데이터를 자동으로 추출할수 있게 해야한다
@@ -98,6 +119,8 @@
                     }
                     game_update();
 
+                    // modalContaienr = document.getElementById('modalContainer');
+                    // inventory1 = document.getElementById('Inventory');
 
                     let toggle = true;
 
@@ -120,13 +143,15 @@
                                 ui.hideCombine();
                             }
                             toggle = !toggle;
+                            
                         } else if ( e.keyCode === 73 ) {
-                            // test raina0411
+                            // test
                             toggle = !toggle;
+
                             if(toggle) {
-                                ui.showInventory();
+                                showModal('inventory');
                             } else {
-                                ui.hideInventory();
+                                hideModal();
                             }
                         }
                     }, true);
