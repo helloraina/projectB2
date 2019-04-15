@@ -29,7 +29,7 @@
             <div class="modal">
                 <h1 class="title">title</h1>
                 <div class="contents">contents</div>
-                <button class="submit">submit</button>
+                <button class="button submit">submit</button>
             </div>
         </div>
 
@@ -61,14 +61,12 @@
             
             function showModal(modalType){
                 container.classList.add('show');
-
-                // if(modalType === 'inventory') {
-
-                // }
             }
             function hideModal(){
                 container.classList.remove('show');
             }
+            
+            // contents 영역 inventory로 변경
 
             function gameStart() {
                 // 나중에 스테이지 데이터와 캐릭터 데이터를 자동으로 추출할수 있게 해야한다
@@ -143,7 +141,7 @@
                                 ui.hideCombine();
                             }
                             toggle = !toggle;
-                            
+
                         } else if ( e.keyCode === 73 ) {
                             // test
                             toggle = !toggle;

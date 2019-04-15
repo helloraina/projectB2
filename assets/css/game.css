@@ -93,7 +93,25 @@ canvas {
   padding: 20px 30px;
 }
 
-.modalContainer .modal button {
+#inventory .contents {
+  background: url(./inventory.png) no-repeat;
+}
+
+.button{
+  width: 130px;
+  height: 33px;
+  padding: 8px 0;
+
+  color: #fff;
+
+  background: url(../button1.png) no-repeat;
+}
+
+.button.submit {
+  background: url(../button2.png) no-repeat;
+}
+
+.modalContainer .modal .button {
   position: absolute;
 
   left: 0;
@@ -101,9 +119,4 @@ canvas {
   bottom: 15px;
 
   margin: 0 auto;
-
-  width: 130px;
-  height: 33px;
-  padding: 10px 0;
-  background: url(../button1.png) no-repeat;
 }
