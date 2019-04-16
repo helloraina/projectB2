@@ -5,6 +5,7 @@ html {
 }
 
 body {
+  position: relative;
   max-width: 100%;
   min-height: 100%;
   margin: 0;
@@ -45,13 +46,13 @@ canvas {
   margin: 80px 0;
 }
 
-.modalContainer {
+.uiContainer {
   display: none;
   
   position: absolute;
   z-index: 9999;
   
-  top: 190px;
+  top: 110px;
   left: 0;
   right: 0;
   bottom: 0;
@@ -65,12 +66,12 @@ canvas {
   transition: background-color 0.3s;
 }
 
-.modalContainer.show{
+.uiContainer.show{
   display: block;
   background-color: rgba(0,0,0, .5);
 }
 
-.modalContainer .modal {
+.uiContainer .modal {
   /* display: none; */
   position: relative;
   
@@ -84,18 +85,15 @@ canvas {
   background:url(../modal.png) no-repeat;
 }
 
-.modalContainer .modal .title {
+.uiContainer .modal .title {
   padding: 8px 0;
   font-size: 14px;
 }
-.modalContainer .modal .contents {
+.uiContainer .modal .contents {
   text-align: left;
   padding: 20px 30px;
 }
 
-#inventory .contents {
-  background: url(./inventory.png) no-repeat;
-}
 
 .button{
   width: 130px;
@@ -111,7 +109,7 @@ canvas {
   background: url(../button2.png) no-repeat;
 }
 
-.modalContainer .modal .button {
+.uiContainer .modal .button {
   position: absolute;
 
   left: 0;
@@ -119,4 +117,105 @@ canvas {
   bottom: 15px;
 
   margin: 0 auto;
+}
+
+/* dom element test - 9 slice */
+.flex_modal {
+  display: none;
+
+  position: absolute;
+  z-index: 100;
+  left: 50%;
+  right: 0;
+  
+  width: 400px;
+  height: 400px;
+  margin: 10% auto;
+
+  margin-left: 0;
+  transition: margin-left 0.6s linear;
+}
+
+.flex_modal ._height{
+  height: 70px;
+  transition: all .6s;
+}
+.flex_modal ._width{
+  width: 70px;
+  transition: all .6s;
+}
+
+.flex_modal-top, .flex_modal-middle, .flex_modal-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  height: 30px;
+}
+
+.flex_modal-top * {
+  display: block;
+  height: 30px;
+}
+
+.flex_modal-top .left{
+  height: 30px;
+  width: 30px;
+  background:url('../ui/modal/modal0_01.png') no-repeat;
+}
+.flex_modal-top .center{
+  min-height: 30px;
+  min-width: 70px;
+  background:url('../ui/modal/modal0_02.png') repeat-x;
+}
+.flex_modal-top .right{
+  height: 30px;
+  width: 30px;
+  background:url('../ui/modal/modal0_03.png') no-repeat;
+}
+
+.flex_modal-middle * {
+  display: block;
+  width: 30px;
+  min-height: 30px;
+}
+.flex_modal-middle .left{
+  width: 30px;
+  background:url('../ui/modal/modal0_04.png') repeat-y;
+}
+.flex_modal-middle .center{
+  min-width: 70px;
+  background:url('../ui/modal/modal0_05.png') repeat;
+}
+.flex_modal-middle .right{
+  width: 30px;
+  background:url('../ui/modal/modal0_06.png') repeat-y;
+}
+
+.flex_modal-bottom * {
+  display: block;
+  width: 30px;
+  min-height: 30px;
+}
+.flex_modal-bottom .left{
+  width: 30px;
+  background:url('../ui/modal/modal0_07.png') no-repeat;
+}
+.flex_modal-bottom .center{
+  min-width: 70px;
+  background:url('../ui/modal/modal0_08.png') repeat;
+}
+.flex_modal-bottom .right{
+  width: 30px;
+  background:url('../ui/modal/modal0_09.png') no-repeat;
+}
+/* dom element flex_modal - 9 slice */
+
+#inventory {
+  margin-left: -400px;
+}
+
+#inventory > .flex_modal-middle .center {
+  
+  background: url(../inventory.png) no-repeat;
+  background-size: cover;
 }

@@ -1,30 +1,67 @@
-class domUI {
-    constructor() {
-        // create div - modal container
-        // create inventory div 
-        // show
-        // hide 
+  class DomUI {
 
-        // inventory add item / remove item
-        const modalContaienr = document.createElement('div');
-        modalContaienr.className = "modalContainer";
+    constructor(_elementClass, _elementID) {
+        this.elementID = _elementID;
+        this.elementClass = _elementClass;
+        
+        var dom = document.createElement('div');
+        dom.className = 'modalWrapper';
+        dom.innerHTML = this.render();
 
-
-        const inventory2 = document.createElement('div');
-        inventory2.className = "modal";
-        inventory2.id = "Inventory2";
-        modalContaienr.appendChild(inventory2);
-
-        const game = document.getElementById('Game');
-        game.appendChild(modalContaienr);
+        container.appendChild(dom);
     }
 
-    // show() {
-    //     console.log('show');
-    //     this.modalcontainer.style.display = 'block';
-    // }
+    render() {
+        return `<div class="${this.elementClass}" id="${this.elementID}">
+            <div class="${this.elementClass}-top">
+                <span class="left"></span>
+                <span class="center _width"><h1 id="title></h1></span>
+                <span class="right"></span>
+            </div>
+            <div class="${this.elementClass}-middle _height">
+                <span class="left"></span>
+                <span class="center _width"></span>
+                <span class="right"></span>
+            </div>
+            <div class="${this.elementClass}-bottom">
+                <span class="left"></span>
+                <span class="center _width"></span>
+                <span class="right"></span>
+            </div>
+        </div>`;
+    }
+    
+    show(_elementID) {
+        document.getElementById(_elementID).style.display = 'block';
+    }
 
-    // hideInventory2() {
-    //     this.modalcontainer.hide();
-    // }
+    hide(_elementID){
+        document.getElementById(_elementID).style.display = 'none';
+    }
+    
+
+
+    addButton(value) {
+    }
+
+    setTitle(value) {
+    }
+    
+    resize(_width, _height, _offsetX) {
+
+        if( _offsetX === null ) {
+            _offsetX = 1;
+        }
+        
+        var dd = document.getElementById(this.elementID);
+        dd.style.marginLeft = ( -_width * 0.5 * _offsetX ) + 'px';
+        
+        dd.getElementsByClassName('_height')[0].style.height = _height+'px';
+
+        var resizeWid = dd.getElementsByClassName('_width');
+
+        Array.prototype.filter.call(resizeWid, function(resizeWid){
+            return resizeWid.style.width = _width+'px';
+        });
+    }
 }

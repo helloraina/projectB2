@@ -20,25 +20,27 @@
         <script src="js/ui.js"></script>
         <script src="js/domUI.js"></script>
     </head>
+
     <body>
         <div class="project_header">
             <h1>BEL - H5 게임 데모</h1>
         </div>
 
-        <div class="modalContainer" id="modalContainer">
-            <div class="modal">
-                <h1 class="title">title</h1>
-                <div class="contents">contents</div>
-                <button class="button submit">submit</button>
-            </div>
-        </div>
+        <div class="uiContainer" id="UiContainer"></div>
 
         <script>
             const pixi = new PIXI.Application(980, 500  , { backgroundColor : 0x000000, forceCanvas: true });
             document.body.appendChild(pixi.view);
             pixi.view.id = "Game";
 
-            const container = document.getElementById('modalContainer');
+            
+            // #dom test
+            const container = document.getElementById('UiContainer');
+
+            var dom = new DomUI('flex_modal','test');
+            var dom2 = new DomUI('flex_modal', 'inventory');
+            // #dom test
+
 
 
             // 오프닝을 준비한다
@@ -57,16 +59,6 @@
 
                 pixi.stage.addChild(new PIXI.Sprite(PIXI.Texture.fromFrame("border.png")));
             });
-
-            
-            function showModal(modalType){
-                container.classList.add('show');
-            }
-            function hideModal(){
-                container.classList.remove('show');
-            }
-            
-            // contents 영역 inventory로 변경
 
             function gameStart() {
                 // 나중에 스테이지 데이터와 캐릭터 데이터를 자동으로 추출할수 있게 해야한다
@@ -117,9 +109,6 @@
                     }
                     game_update();
 
-                    // modalContaienr = document.getElementById('modalContainer');
-                    // inventory1 = document.getElementById('Inventory');
-
                     let toggle = true;
 
                     window.addEventListener("keydown", (e) => {
@@ -141,16 +130,31 @@
                                 ui.hideCombine();
                             }
                             toggle = !toggle;
+                        } else if ( e.keyCode === 73 ) { // i
+                            // #dom test
+                            container.classList.add('show');
+                            dom2.show('inventory');
+                            
+                        } else if ( e.keyCode === 84 ) { // t
+                            // #dom test
+                            container.classList.add('show');
+                            dom.show('test');
 
-                        } else if ( e.keyCode === 73 ) {
-                            // test
-                            toggle = !toggle;
+                        } else if ( e.keyCode === 65 ) { // a
+                            // #dom test
+                            if(!toggle) {
+                                dom.resize(70, 70);
+                                dom2.resize(150, 150);
 
-                            if(toggle) {
-                                showModal('inventory');
+                                dom.hide('inventory');
+                                dom.hide('test');
+
+                                container.classList.remove('show');
                             } else {
-                                hideModal();
+                                dom.resize(200, 200, -1.5);
+                                dom2.resize(230, 230);
                             }
+                            toggle = !toggle;
                         }
                     }, true);
                 });
