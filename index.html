@@ -4,8 +4,8 @@
         <title>BEL H5 Game Demo</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- 스타일시트 분리 -->
-
-        <link rel="stylesheet" href="assets/css/nineslicebox.css" type="text/css">
+        <link rel="stylesheet" href="assets/css/base.css" type="text/css">
+        <link rel="stylesheet" href="assets/css/modal.css" type="text/css">
         <link rel="stylesheet" href="assets/css/game.css" type="text/css">
 
         <script src="js/pixi/pixi.js"></script>
@@ -108,8 +108,6 @@
 
 
                     // #dom UI test
-                    
-
                     var dom = new DomUI('flex_modal','test');
                     var dom2 = new DomUI('flex_modal', 'inventory');
                     // #dom UI test
@@ -136,12 +134,14 @@
                         } else if ( e.keyCode === 73 ) { // i
                             // #dom UI test
                             container.classList.add('show');
-                            dom2.show();
+
+                            dom.showpixel();
+                            // dom2.show();
                             
                         } else if ( e.keyCode === 84 ) { // t
                             // #dom UI test
-                            dom.show();
-
+                            // dom.show();
+                            dom.pixelresize(35);
                         } else if ( e.keyCode === 65 ) { // a
                             // #dom UI test
                             if(!toggle) {

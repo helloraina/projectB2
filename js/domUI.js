@@ -1,14 +1,17 @@
   class DomUI {
     constructor(domClass, domID) {
+
+      // ui type === modal -> class - flex_modal
       this.domID = domID;
       this.domClass = domClass;
 
-      var dom = document.createElement('div');
-      dom.className = 'modalWrapper';
-      dom.innerHTML = this.render();
+      // var dom = document.createElement('div');
+      // dom.className = 'modalWrapper';
+      // dom.innerHTML = this.render();
 
-      container.appendChild(dom);
+      // container.appendChild(dom);
     }
+    //modal인 경우 -
 
     render() {
       return `
@@ -29,6 +32,20 @@
               <span class="right"></span>
           </div>
         </div>`;
+    }
+
+    render2() {
+      return `
+          <div class="pixel"></div>
+          <div class="pixel"></div>
+          <div class="pixel"></div>
+          <div class="pixel"></div>
+          <div class="pixel"></div>
+          <div class="pixel"></div>
+          <div class="pixel"></div>
+          <div class="pixel"></div>
+          <div class="pixel"></div>
+       `;
     }
 
     show() {
@@ -109,5 +126,18 @@
       Array.prototype.filter.call(resizeWid, function (resizeWid) {
         return resizeWid.style.width = _width + 'px';
       });
+    }
+
+
+    showpixel() {
+      const pixelBox = document.createElement('div');
+      pixelBox.id = "pixelBox";
+      container.appendChild(pixelBox);
+      pixelBox.innerHTML = this.render2();
+    }
+
+    pixelresize(value) {
+      const pixelBox = document.getElementById('div');
+      pixelBox.getElementsByClassName('pixel').style.width = value + 'px';
     }
   }
