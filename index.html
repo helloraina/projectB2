@@ -3,7 +3,9 @@
     <head>
         <title>BEL H5 Game Demo</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- 스타일시트 분리 -->
 
+        <link rel="stylesheet" href="assets/css/nineslicebox.css" type="text/css">
         <link rel="stylesheet" href="assets/css/game.css" type="text/css">
 
         <script src="js/pixi/pixi.js"></script>
@@ -33,15 +35,8 @@
             document.body.appendChild(pixi.view);
             pixi.view.id = "Game";
 
-            
-            // #dom test
+
             const container = document.getElementById('UiContainer');
-
-            var dom = new DomUI('flex_modal','test');
-            var dom2 = new DomUI('flex_modal', 'inventory');
-            // #dom test
-
-
 
             // 오프닝을 준비한다
             const loader = new PIXI.loaders.Loader();
@@ -111,6 +106,14 @@
 
                     let toggle = true;
 
+
+                    // #dom UI test
+                    
+
+                    var dom = new DomUI('flex_modal','test');
+                    var dom2 = new DomUI('flex_modal', 'inventory');
+                    // #dom UI test
+
                     window.addEventListener("keydown", (e) => {
                         if (e.keyCode === 66) {
                             // 스테이지를 변경한다
@@ -131,29 +134,33 @@
                             }
                             toggle = !toggle;
                         } else if ( e.keyCode === 73 ) { // i
-                            // #dom test
+                            // #dom UI test
                             container.classList.add('show');
-                            dom2.show('inventory');
+                            dom2.show();
                             
                         } else if ( e.keyCode === 84 ) { // t
-                            // #dom test
-                            container.classList.add('show');
-                            dom.show('test');
+                            // #dom UI test
+                            dom.show();
 
                         } else if ( e.keyCode === 65 ) { // a
-                            // #dom test
+                            // #dom UI test
                             if(!toggle) {
-                                dom.resize(70, 70);
                                 dom2.resize(150, 150);
-
-                                dom.hide('inventory');
-                                dom.hide('test');
-
-                                container.classList.remove('show');
-                            } else {
                                 dom.resize(200, 200, -1.5);
-                                dom2.resize(230, 230);
+
+                                dom.hide();
+                                dom.hide();
+
+                            } else {
+                                // #dom UI test
+                                dom.resize(70, 70);
+                                dom.setTitle('Test');
+
+                                dom2.resize(260, 300);
+                                dom2.setTitle('Inventory');
+                                // dom2.addButtonEvent('close');
                             }
+
                             toggle = !toggle;
                         }
                     }, true);

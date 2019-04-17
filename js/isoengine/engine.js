@@ -851,7 +851,7 @@ class Wizard extends Character {
 
         this.hp = 150;
         this.maxHp = 150;
-        this.damage = 120;
+        this.damage = 200; // # test
         this.balance = 0.7;
         this.ciriticalRate = 0.2;
         this.ciriticalBalance = 1.5;
