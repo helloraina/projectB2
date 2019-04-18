@@ -25,18 +25,13 @@
 
     <body>
         <div class="project_header">
-            <h1>BEL - H5 게임 데모</h1>
+            <h1>BEL - H5 Game Demo</h1>
         </div>
-
-        <div class="uiContainer" id="UiContainer"></div>
 
         <script>
             const pixi = new PIXI.Application(980, 500  , { backgroundColor : 0x000000, forceCanvas: true });
             document.body.appendChild(pixi.view);
             pixi.view.id = "Game";
-
-
-            const container = document.getElementById('UiContainer');
 
             // 오프닝을 준비한다
             const loader = new PIXI.loaders.Loader();
@@ -59,7 +54,6 @@
                 // 나중에 스테이지 데이터와 캐릭터 데이터를 자동으로 추출할수 있게 해야한다
                 // 로딩 속도를 최적화 하기 위해서
                 // 일단은 모든 데이터를 다 넣도록 하자 (알아서 캐싱된다)
-
                 pixi.stage.removeChildren();
                 const game = new Game(pixi);
                 pixi.stage.addChild(new PIXI.Sprite(PIXI.Texture.fromFrame("border.png")));
@@ -106,12 +100,8 @@
 
                     let toggle = true;
 
-
-                    // #dom UI test
-                    var dom = new DomUI('flex_modal','test');
-                    var dom2 = new DomUI('flex_modal', 'inventory');
-                    // #dom UI test
-
+                    var dom = new DomUI();
+                    
                     window.addEventListener("keydown", (e) => {
                         if (e.keyCode === 66) {
                             // 스테이지를 변경한다
@@ -131,37 +121,9 @@
                                 ui.hideCombine();
                             }
                             toggle = !toggle;
-                        } else if ( e.keyCode === 73 ) { // i
-                            // #dom UI test
-                            container.classList.add('show');
-
-                            dom.showpixel();
-                            // dom2.show();
+                        } else if (e.keyCode === 68 ) {
                             
-                        } else if ( e.keyCode === 84 ) { // t
-                            // #dom UI test
-                            // dom.show();
-                            dom.pixelresize(35);
-                        } else if ( e.keyCode === 65 ) { // a
-                            // #dom UI test
-                            if(!toggle) {
-                                dom2.resize(150, 150);
-                                dom.resize(200, 200, -1.5);
-
-                                dom.hide();
-                                dom.hide();
-
-                            } else {
-                                // #dom UI test
-                                dom.resize(70, 70);
-                                dom.setTitle('Test');
-
-                                dom2.resize(260, 300);
-                                dom2.setTitle('Inventory');
-                                // dom2.addButtonEvent('close');
-                            }
-
-                            toggle = !toggle;
+                            dom.showModal('Inventory');
                         }
                     }, true);
                 });

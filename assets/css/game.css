@@ -1,9 +1,8 @@
-canvas {
+
+#Game, canvas {
   display: block;
   margin: 0 auto;
-}
 
-#Game {
   position: relative;
   box-shadow: 5px 5px 15px 5px #333;
   -webkit-box-shadow: 5px 5px 15px 5px #333; 
@@ -15,18 +14,16 @@ canvas {
 
 .project_header h1 {
   color: #ffffff;
-  font-size: 30px;
+  font-size: 60px;
   line-height: 1;
   margin: 80px 0;
 }
 
 .uiContainer {
-  display: none;
-  
   position: absolute;
   z-index: 9999;
   
-  top: 110px;
+  top: 140px;
   left: 0;
   right: 0;
   bottom: 0;
@@ -35,28 +32,9 @@ canvas {
   height: 500px;
   margin: 0 auto;
   overflow: hidden;
-
-  background-color: rgba(0,0,0, 1);
-  transition: background-color 0.3s;
-}
-
-.uiContainer.show{
-  display: block;
+/* 
   background-color: rgba(0,0,0, .5);
-}
-
-.uiContainer .modal {
-  /* display: none; */
-  position: relative;
-  
-  width: 320px;
-  height: 450px;
-  margin: 0 auto;
-
-  color: #fff;
-  text-align: center;
-
-  background:url(../modal.png) no-repeat;
+  transition: background-color 0.3s; */
 }
 
 .uiContainer .modal .title {
@@ -68,104 +46,50 @@ canvas {
   padding: 20px 30px;
 }
 
-
 .button {
+  position: absolute;
   width: 130px;
   height: 33px;
   padding: 8px 0;
   margin: 0 auto;
   color: #fff;
   border: none;
-  background: url(../button1.png) no-repeat;
-
+  background: url(../ui/button1.png) no-repeat;
   transition: all 0.3s;
 }
 
-.button.s1{
-  transform: scale(0.2);
-}
-
-.button.b1 {
-  transform: scale(1);
-}
-
-.button.submit {
-  background: url(../button2.png) no-repeat;
-}
-
-.uiContainer .modal .button {
-  position: absolute;
-
-  left: 0;
-  right: 0;
-  bottom: 15px;
-
-  margin: 0 auto;
-}
-
-#title{
-  font-size: 20px;
-  color: #fff;
-  text-align: center;
-}
-
-.flex_modal-bottom .center .button {
-  margin: 15px auto;
-}
-
-#inventory {
-  -ms-transform: translate(50px, 10px); /* IE 9 */
-  -webkit-transform: translate(50px, 10px); /* Safari */
-  transform: translate(50px, 10px);
-}
-
-
-
-/* test */
-
-#pixelBox {
-  width: 39px;
-  height: 39px;
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.pixel {
-  width: 13px;
-  height: 13px;
-  
-  float: left;
+.button._small {
+  width: 79px;
+  padding: 8px 0;
+  background: url(../ui/button_s1.png) no-repeat;
   background-size: contain;
 }
 
-.pixel:nth-child(1) {
-  background:url('../ui/modal3/nineBox_01.png') no-repeat;
-}
-.pixel:nth-child(2) {
-  background:url('../ui/modal3/nineBox_02.png') repeat-x;
-}
-.pixel:nth-child(3) {
-  background:url('../ui/modal3/nineBox_03.png') no-repeat;
-}
-.pixel:nth-child(4) {
-  background:url('../ui/modal3/nineBox_04.png') repeat-y;
-}
-.pixel:nth-child(5) {
-  background:url('../ui/modal3/nineBox_05.png') repeat-x;
-}
-.pixel:nth-child(6) {
-  background:url('../ui/modal3/nineBox_06.png') repeat-y;
+.button._small.submit {
+  background: url(../ui/button_s2.png) no-repeat;
 }
 
-.pixel:nth-child(7) {
-  background:url('../ui/modal3/nineBox_07.png') no-repeat;
+.button.submit {
+  background: url(../ui/button_s2.png) no-repeat;
 }
 
-.pixel:nth-child(8) {
-  background:url('../ui/modal3/nineBox_08.png') repeat-x;
+.button.__top {
+  top: 10px;
+}
+.button.__bottom {
+  bottom: 10px;
+}
+.button.__left {
+  left: 10px;
+}
+.button.__center {
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+}
+.button.__right {
+  right: 10px;
 }
 
-.pixel:nth-child(9) {
-  background:url('../ui/modal3/nineBox_09.png') no-repeat;
-}
+
 
