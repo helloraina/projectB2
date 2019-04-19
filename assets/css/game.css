@@ -32,30 +32,22 @@
   height: 500px;
   margin: 0 auto;
   overflow: hidden;
-/* 
-  background-color: rgba(0,0,0, .5);
-  transition: background-color 0.3s; */
+  
+  pointer-events: none;
 }
 
-.uiContainer .modal .title {
-  padding: 8px 0;
-  font-size: 14px;
-}
-.uiContainer .modal .contents {
-  text-align: left;
-  padding: 20px 30px;
+.uiContainer * {
+  pointer-events: auto;
 }
 
 .button {
-  position: absolute;
   width: 130px;
   height: 33px;
   padding: 8px 0;
-  margin: 0 auto;
   color: #fff;
   border: none;
   background: url(../ui/button1.png) no-repeat;
-  transition: all 0.3s;
+  transition: all 0.4s linear;
 }
 
 .button._small {
@@ -72,24 +64,3 @@
 .button.submit {
   background: url(../ui/button_s2.png) no-repeat;
 }
-
-.button.__top {
-  top: 10px;
-}
-.button.__bottom {
-  bottom: 10px;
-}
-.button.__left {
-  left: 10px;
-}
-.button.__center {
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-}
-.button.__right {
-  right: 10px;
-}
-
-
-

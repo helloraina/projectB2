@@ -1,59 +1,97 @@
+  
+  
+  
+  
   class DomUI {
     constructor() {
       const game = document.getElementById('Game');
-      
-      const domContainer = document.createElement('div');
-      domContainer.className = 'uiContainer';
-
-      this.container = domContainer;
       this.screenWidth = game.offsetWidth;
       this.screenHeight = game.offsetHeight;
     }
 
-    createBaseDom() {
-      const domContainer = document.createElement('div');
-      domContainer.className = 'uiContainer';
+    test () {
+      const container = document.createElement('div');
+      container.className = 'uiContainer';
+      document.body.appendChild(container);
 
-      document.body.append(domContainer);
+      // const btn = new DomButton('center');
+      const dot = document.createElement('div');
+      dot.style.width = '10px';
+      dot.style.height = '10px';
+      dot.style.backgroundColor = 'red';
 
-      this.container = domContainer;
+      container.appendChild(dot);
+
+      dot.moveToCenter();
+      // btn.moveToLeft();
+      // btn.moveToRight();
+
+      // btn.setPosition(800, 200);
+      dot.setPosition(399, 200);
     }
 
-    removeBaseDom() {
-      document.body.removeChild(this.container);
+    moveToCenter(){
+      this.style.position = 'absolute';
+      this.style.left = 0 + 'px';
+      this.style.right = 0 + 'px';
+      this.style.margin = '0 auto';
     }
 
-    showModal(name) {
-      this.createBaseDom();
+    moveToLeft(){
+      this.style.position = 'absolute';
+      this.style.left = 0 + 'px';
+    }
 
-      var modal = new DomModal(this.container, 400, 300);
+    moveToRight(){
+      this.style.position = 'absolute';
+      this.style.right = 0;
+    }
+
+    moveToBottom(){
+      this.style.position = 'absolute';
+      this.style.bottom = 0 + 'px';
+    }
+
+    setPosition(x, y) {
+      this.style.position = 'absolute';
       
-      this.addChild(modal.dom);
-      modal.addTitle(name);
-      this.modal = modal.dom;
+      var offsetX = this.dom.offsetLeft;
+      var offsetY = this.dom.offsetTop;
 
-      var btn = new DomButton('Okay');
-      btn.setPosition('bottom', 'right');
-      modal.dom.appendChild(btn.dom);
-      
-      setTimeout(() => {
-        this.modal.style.transform = 'translate(135%, 10%)';
-      }, 100);
-    }
+      this.style.top = 'auto';
+      this.style.bottom = 'auto';
 
-    hideModal(){
-      this.removeBaseDom();
-    }
+      this.style.left = 'auto';
+      this.style.right = 'auto';
+      this.style.margin = '0';
 
-    addChild(_dom) {
-      this.container.appendChild(_dom);
+      if( offsetX > this.screenWidth/2 ) {
+        this.style.right = 'auto';
+      } else {
+        this.style.left = 'auto';
+      }
+      console.log(x + ' / ' + offsetX + ' / ' + offsetY);
+      // if( offsetX > this.screenWidth ) {
+      //   console.log('document --- 111' );
+      //   offsetX = 0;
+      // }
+
+      console.log(x + ' / ' + offsetX + ' / ' + offsetY);
+
+      this.style.left = offsetX + x + 'px';
+      this.style.top = offsetY + y + 'px';
+
+      console.log('' + this.dom.offsetLeft + ' / ' + offsetY);
+      console.dir(this.dom);
     }
   }
 
 class DomModal extends DomUI {
+  
   constructor (container, _width, _height) {
     super();
-    var domModal = document.createElement('div');
+  
+    const domModal = document.createElement('div');
 
     domModal.innerHTML = this.render();
     domModal.classList.add('pixelBox');
@@ -61,14 +99,13 @@ class DomModal extends DomUI {
 
     domModal.style.width = _width + 'px';
     domModal.style.height = _height + 'px';
-    
-    // modal background image path 변경
-    var path = "modal2";
 
+    // modal background image path 변경
+    // var path = "modal2";
     for(let i = 0; i < domModal.children.length; i++) {
       var pixel = domModal.children[i];
 
-      pixel.style.backgroundImage = `url('/assets/ui/${path}/nineBox_0${i+1}.png')`;
+      // pixel.style.backgroundImage = `url('/assets/ui/${path}/nineBox_0${i+1}.png')`;
       
       if( pixel.classList.contains('_width')) {
         pixel.style.width = (_width - 26)  + 'px';
@@ -85,8 +122,9 @@ class DomModal extends DomUI {
     this.removeDom (closeBtn);
 
     this.dom = domModal;
-    console.dir(domModal);
+    console.dir(closeBtn);
   }
+
 
   addTitle(text) {
     const title = document.createElement('h2');
@@ -123,35 +161,20 @@ class DomButton extends DomUI {
     const button = document.createElement('button');
     button.innerHTML = value;
     button.className = 'button';
+    // button.style.position = 'absolute';
 
-    if( type !== null ) {
+    if( type !== undefined ) {
       button.classList.add(type); 
     }
     this.dom = button;
   }
 
-  setPosition(_vertical, _align) {
-    // _vertical: top, bottom
-    // _align: left, center, right
-
-    this.dom.classList.add('__' + _vertical);
-    this.dom.classList.add('__' + _align);
+  onClick(callback) {
+    this.addEventListener('click', function() {
+      if(callback) {
+        callback();
+      }
+    });
   }
-}
 
-class DomInventory extends DomModal {
-  constructor () {
-    const contentBox = document.createElement('div');
-    this.addChild(contentBox);
-    this.content = contentBox;
-  }
-  updateItems() {
-    const _colum = 5;
-    const _row = 3;
-
-    itemsWrap.style.className = 'inventoryContents';
-
-    const item = document.createElement('div');
-
-  }
 }
