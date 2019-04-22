@@ -4,8 +4,7 @@
         <title>BEL H5 Game Demo</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- 스타일시트 분리 -->
-        <link rel="stylesheet" href="assets/css/base.css" type="text/css">
-        <link rel="stylesheet" href="assets/css/modal.css" type="text/css">
+        <!-- <link rel="stylesheet" href="assets/css/modal.css" type="text/css"> -->
         <link rel="stylesheet" href="assets/css/game.css" type="text/css">
 
         <script src="js/pixi/pixi.js"></script>
@@ -100,7 +99,8 @@
 
                     let toggle = true;
 
-                    var dom = new DomUI();
+
+                    const domUI = new DomUI();
                     
                     window.addEventListener("keydown", (e) => {
                         if (e.keyCode === 66) {
@@ -121,8 +121,10 @@
                                 ui.hideCombine();
                             }
                             toggle = !toggle;
+
                         } else if (e.keyCode === 68 ) {
-                            dom.test();
+                            domUI.test();
+                            // domUI.showChatBallon(game.player, "chat test!!!! ");
                         }
                     }, true);
                 });
