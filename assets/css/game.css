@@ -34,14 +34,16 @@
   height: 500px;
   margin: 0 auto;
   overflow: hidden;
-  
+  /* 클릭이벤트 막기. */
   pointer-events: none;
 }
 
+  /* 클릭이벤트 열기. */
 .uiContainer * {
   pointer-events: auto;
 }
 
+/* 좌표 테스트용 -- 삭제예정  */
 /* 
 .button {
   width: 10px;
@@ -68,10 +70,50 @@
   background-size: contain;
 }
 
+/* 사용 미정 */
 .button._small.submit {
   background: url(../ui/button_s2.png) no-repeat;
 }
 
 .button.submit {
-  background: url(../ui/button_s2.png) no-repeat;
+  background: url(../ui/button2.png) no-repeat;
+}
+
+
+.title {
+  position: absolute;
+
+  top: 30px;
+  left: 0;
+  right: 0;
+
+  text-align: center;
+
+  font-size: 26px;
+  color: #ffd800;
+  text-align: center;
+}
+
+.stageTitle {
+  position: absolute;
+
+  font-size: 26px;
+  color: #fff;
+  text-align: center;
+
+  border-bottom: 3px solid #fff;
+  opacity: 0;
+  transition: all 0.3s;
+}
+
+.stageTitle.open {
+  opacity: 1;
+}
+
+.mainMenu {
+  display: flex;
+  flex-wrap: wrap;
+
+  width: 100%;
+  padding: 10px 20px;
 }

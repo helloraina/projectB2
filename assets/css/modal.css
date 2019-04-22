@@ -13,20 +13,6 @@
   transition: all 0.3s;
 }
 
-.title {
-  position: absolute;
-
-  top: 30px;
-  left: 0;
-  right: 0;
-
-  text-align: center;
-
-  font-size: 26px;
-  color: #ffd800;
-  text-align: center;
-}
-
 /* dom element test - 9 slice */
 .pixelBox {
   position: relative;
@@ -38,7 +24,7 @@
 
   text-align: center;
   transform: translate(400%, 10%);
-  transition: all 0.6s linear;
+  transition: all 0.6s ease-in;
 }
 .pixelBox .closeBtn {
   display: none;
@@ -50,10 +36,14 @@
 .pixel {
   width: 13px;
   height: 13px;
-  
+
+  min-width: 8px;
+  min-height: 8px;
+
   float: left;
   background-size: cover;
 }
+
 .pixel:nth-child(1) {
   background:url('/assets/ui/modal3/nineBox_01.png') no-repeat;
 }

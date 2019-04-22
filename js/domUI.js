@@ -1,155 +1,3 @@
-  
-class NineBox extends DomUI {
-  constructor (_path, _width, _height) {
-    super();
-  
-    const nineBox = document.createElement('div');
-    nineBox.innerHTML = this.render();
-    nineBox.classList.add('pixelBox');
-
-    nineBox.style.width = _width + 'px';
-    nineBox.style.height = _height + 'px';
-
-    this.dom = nineBox;
-
-    // modal background image path 변경
-    
-    for(let i = 0; i < nineBox.children.length; i++) {
-      var pixel = nineBox.children[i];
-      
-      if( _path !== undefined ) {
-        pixel.style.backgroundImage = `url('/assets/ui/${_path}/nineBox_0${i+1}.png')`;
-      }
-
-      if( pixel.classList.contains('_width')) {
-        pixel.style.width = (_width - 26)  + 'px';
-      } 
-      if ( pixel.classList.contains('_height') ) {
-        pixel.style.height = (_height - 26)  + 'px';
-      }
-    }
-  }
-
-  render() {
-    return `
-        <div class="pixel"></div>
-        <div class="pixel _width"></div>
-        <div class="pixel"></div>
-        <div class="pixel _height"></div>
-        <div class="pixel _width _height"></div>
-        <div class="pixel _height"></div>
-        <div class="pixel"></div>
-        <div class="pixel _width"></div>
-        <div class="pixel"></div>
-     `;
-  }
-}
-
-
-class Modal extends DomUI {
-  constructor(title) {
-    super();
-
-    this.dom = new NineBox(358,316);
-    this.dom.addTitle(title);
-    this.dom.classList.add('modal');
-    this.dom.classList.add(title);
-  }
-
-  show() {
-    this.container.appendChild(this.dom);
-  }
-}
-
-
-class Button extends DomUI {
-  constructor (value, type) {
-    super();
-
-    const button = document.createElement('button');
-    button.innerHTML = value;
-    button.className = 'button';
-    button.style.position = 'absolute';
-    
-
-    if( type !== undefined ) {
-      button.classList.add(type); 
-    }
-    this.dom = button;
-  }
-
-  onClick(callback) {
-    this.addEventListener('click', function() {
-      if(callback) {
-        callback();
-      }
-    });
-  }
-}
-
-
-class ChatBallon2 extends DomUI {
-  // character
-  constructor(character, chatText) {
-      super(); 
-      // 한글자씩 나오는 애니메이션을 고민해보자
-      this.follower = character;
-      const MAX_CHAT_WIDTH = 180;
-
-      // this.classList.add('chat');
-      // this.style.wordWrapWidth(MAX_CHAT_WIDTH);
-      console.log('chatText: ' + chatText);
-
-      // 캐릭터의 위치에 맞추어서 넣어야 한다
-      const width = chatText.length * 10;
-      const height = chatText.offsetHeight + 36;
-
-      const plane = new NineBox('dialog', width, height );
-      // plane.width = textMetrics.width + 36;
-      // plane.height = textMetrics.height + 36;
-      this.plane = plane.dom;
-
-      const comma = document.createElement('div');
-      comma.style.backgroundImage = 'url(chatballon_comma.png) no-repeat';
-      comma.style.width = '11px';
-      comma.style.height = '22px';
-
-      // comma.position.y = plane.height - 5;
-      this.comma = comma;
-
-      const text = document.createElement('p');
-      text.innerText = chatText;
-      
-      this.plane.appendChild(comma);
-      this.plane.appendChild(text);
-
-      this.container.appendChild(this.plane);
-
-      this.updatePosition();
-  }
-  
-  updatePosition() {
-      const character = this.follower;
-      const plane = this.plane;
-      const comma = this.comma;
-
-      const gpos = character.toGlobal(new PIXI.Point(0, 0));
-      // plane.position.x = Math.max(gpos.x - plane.width / 2, 0);
-      // plane.position.y = Math.max(gpos.y - character.height - plane.height - 36, 0);
-      plane.style.position = 'absolute';
-      
-      plane.style.left = Math.max(gpos.x - plane.width / 2, 0) + 'px';
-      plane.style.top = Math.max(gpos.y - character.height - plane.height - 36, 0)+ 'px';
-
-      comma.style.left = plane.width / 2 + 'px';
-  }
-}
-class StageTitle {
-  constructor(container, text) {
-    
-  }
-}
-
 
 class DomUI {
   constructor() {
@@ -165,20 +13,33 @@ class DomUI {
     this.container.className = 'container';
   }
 
-  test () {
-    const btn = new Button('Test');
 
-    btn.moveToCenter();
+  showMenu () {
+    // battle mode 가 아닐 때 체크
+    const mainMenu = document.createElement('ul');
+    const menuData = ['Inventory', 'ItemAcquire', 'Player Stat'];
+    mainMenu.className  = 'mainMenu';
+
+    for(let i = 0; i < menuData.length; i++) {
+      let menuItem = document.createElement('li');
+      let menu = new Button(menuData[i]);
+
+      menuItem.className = 'menu';
+      menuItem.appendChild(menu.dom);
+      mainMenu.appendChild(menuItem);
+      menuItem.style.marginLeft = 130 + 'px';
+    }
+    
+    this.container.appendChild(mainMenu);
+
+    // const btn = new Button('Test');
+
+    // btn.moveToCenter();
     // btn.moveToLeft();
     // btn.moveToRight();
-    btn.setPosition(399, 200);
+    // btn.setPosition(399, 200);
 
-    this.container.appendChild(btn.dom);
-    // console.dir(chatBox);
-
-    // const chat = new ChatBallon2(player, 'difalsienfld');
-    // container.append(chat);
-    // const chat = new ChatBallon2(this.game.player, )
+    // this.container.appendChild(btn.dom);
     document.body.appendChild(this.container);
   }
 
@@ -240,8 +101,8 @@ class DomUI {
 
   showChatBallon(character, text, duration) {
     const chat = new ChatBallon2(character, text);
-    this.container.appendChild(chat);
-    this.chatBallons.push(chat);
+    this.container.appendChild(chatBallons);
+    this.chatBallons.push(chatBallons);
     duration = duration || 3;
 
     setTimeout(() => {
@@ -253,8 +114,170 @@ class DomUI {
     }, duration * 1000);
   }
 
-
   showStageTitle(text, delay) {
-
+    const title = new SceneTitle(this, text);
+    this.container.appendChild(title.dom);
+    title.classList.add('show');
   }
 }
+
+class SceneTitle {
+  constructor(container, text) {
+    const title = document.createElement('h2');
+    title.classList.add = 'stageTitle';
+    title.innerText = text;
+    // document.body.appendChild(title);
+    console.dir(title);
+  }
+}
+
+class NineBox extends DomUI {
+  // 전체 박스 사이즈 말고 path 있을 때 pixel  사이즈도 있어야함..; 
+
+  constructor (_path, _width, _height) {
+    super();
+  
+    const nineBox = document.createElement('div');
+    nineBox.innerHTML = this.render();
+    nineBox.classList.add('pixelBox');
+
+    nineBox.style.width = _width + 'px';
+    nineBox.style.height = _height + 'px';
+
+    this.dom = nineBox;
+
+    // modal background image path 변경
+    
+    for(let i = 0; i < nineBox.children.length; i++) {
+      var pixel = nineBox.children[i];
+      
+      if( _path !== undefined ) {
+        pixel.style.backgroundImage = `url('/assets/ui/${_path}/nineBox_0${i+1}.png')`;
+      }
+
+      if( pixel.classList.contains('_width')) {
+        pixel.style.width = (_width - 26)  + 'px';
+      } 
+      if ( pixel.classList.contains('_height') ) {
+        pixel.style.height = (_height - 26)  + 'px';
+      }
+    }
+  }
+
+  render() {
+    return `
+        <div class="pixel"></div>
+        <div class="pixel _width"></div>
+        <div class="pixel"></div>
+        <div class="pixel _height"></div>
+        <div class="pixel _width _height"></div>
+        <div class="pixel _height"></div>
+        <div class="pixel"></div>
+        <div class="pixel _width"></div>
+        <div class="pixel"></div>
+     `;
+  }
+}
+
+class Modal extends DomUI {
+  constructor(title) {
+    super();
+
+    this.dom = new NineBox(358,316);
+    this.dom.addTitle(title);
+    this.dom.classList.add('modal');
+    this.dom.classList.add(title);
+  }
+
+  show() {
+    this.container.appendChild(this.dom);
+  }
+}
+
+
+class Button extends DomUI {
+  constructor (value, type) {
+    super();
+
+    const button = document.createElement('button');
+    button.innerHTML = value;
+    button.className = 'button';
+    button.style.position = 'absolute';
+    
+
+    if( type !== undefined ) {
+      button.classList.add(type); 
+    }
+    this.dom = button;
+    
+    console.log('button ---- this');
+    console.dir(this);
+  }
+
+  onClick(callback) {
+    this.addEventListener('click', function() {
+      if(callback) {
+        callback();
+      }
+    });
+  }
+}
+
+
+class ChatBallon2 extends DomUI {
+  // character
+  constructor(character, chatText) {
+      super(); 
+
+      // 한글자씩 나오는 애니메이션을 고민해보자
+      this.follower = character;
+
+      // 글자수 제한
+      const MAX_CHAT_WIDTH = 180;
+      // this.style.wordWrapWidth(MAX_CHAT_WIDTH);
+      
+      console.log('chatText: ' + chatText);
+
+      // 캐릭터의 위치에 맞추어서 넣어야 한다
+      const width = chatText.length * 10;
+      const height = chatText.offsetHeight + 36;
+
+      const plane = new NineBox('dialog', width, height );
+      // plane.width = textMetrics.width + 36;
+      // plane.height = textMetrics.height + 36;
+      this.plane = plane.dom;
+
+      const comma = document.createElement('div');
+      comma.style.backgroundImage = 'url(chatballon_comma.png) no-repeat';
+      comma.style.width = '11px';
+      comma.style.height = '22px';
+
+      // comma.position.y = plane.height - 5;
+      this.comma = comma;
+
+      const text = document.createElement('p');
+      text.innerText = chatText;
+      
+      this.plane.appendChild(comma);
+      this.plane.appendChild(text);
+
+      this.container.appendChild(this.plane);
+
+      this.updatePosition();
+  }
+  
+  updatePosition() {
+      const character = this.follower;
+      const plane = this.plane;
+      const comma = this.comma;
+
+      const gpos = character.toGlobal(new PIXI.Point(0, 0));
+      plane.style.position = 'absolute';
+      
+      plane.style.left = Math.max(gpos.x - plane.width / 2, 0) + 'px';
+      plane.style.top = Math.max(gpos.y - character.height - plane.height - 36, 0)+ 'px';
+
+      comma.style.left = plane.width / 2 + 'px';
+  }
+}
+

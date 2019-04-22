@@ -101,7 +101,9 @@
 
 
                     const domUI = new DomUI();
-                    
+                    game.domUI = domUI;
+                    // domUI.showMenu();
+
                     window.addEventListener("keydown", (e) => {
                         if (e.keyCode === 66) {
                             // 스테이지를 변경한다
@@ -123,8 +125,8 @@
                             toggle = !toggle;
 
                         } else if (e.keyCode === 68 ) {
-                            domUI.test();
-                            // domUI.showChatBallon(game.player, "chat test!!!! ");
+                            domUI.showStageTitle('어둠의 타워어 999층');
+                            // domUI.showChatBallon(game.player, "chat test!!!! ",1000);
                         }
                     }, true);
                 });
